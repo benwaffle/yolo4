@@ -31,6 +31,46 @@ message ProceedResponse {
   DroidGuardTokenResponse droidguard_token_response = 4;
 }
 
+message GetConsentRequest {
+  DeviceId device_id = 1;
+  repeated GaiaId gaia_ids = 2;
+  repeated Param api_params = 3;
+  RequestHeader header = 4;
+  StructuredAPIParams structured_api_params = 5;
+  bool include_asterism_consents = 6;
+  string imei = 7;
+  AsterismClient asterism_client = 8;
+  bool include_device_permission_info = 9;
+}
+
+message GetConsentResponse {
+  DeviceConsent device_consent = 1;
+  repeated AppSpecificConsent app_specific_consents = 2;
+  ResponseHeader header = 3;
+  repeated GaiaReachabilityConsent gaia_reachability_consents = 4;
+  ServerTimestamp next_sync_time = 5;
+  ClientBehavior client_behavior = 6;
+  AsterismClient asterism_client = 7;
+  repeated AsterismConsent asterism_consents = 8;
+  DroidGuardTokenResponse droidguard_token_response = 9;
+  DevicePermissionInfo device_permission_info = 10;
+}
+
+message SetConsentRequest {
+  RequestHeader header = 1;
+  DeviceConsent device_consent = 2;
+  AsterismClient asterism_client = 4;
+  RcsConsentVersion consent_version = 5;
+  DeviceVerificationConsent device_verification_consent = 6;
+  repeated Param api_params = 7;
+  OnDemandConsent on_demand_consent = 8;
+  bytes audit_token = 9;
+}
+
+message SetConsentResponse {
+  ResponseHeader header = 1;
+}
+
 message VerificationResponse {
   Verification verification = 1;
   StatusProto error = 2;
@@ -317,12 +357,12 @@ message Error {
 }
 
 enum ErrorType {
-  VERIFICATION_ERROR_TYPE_UNSPECIFIED = 0;
-  NOT_SUPPORTED = 1;
-  CHALLENGE_NOT_SET = 2;
-  INTERNAL_ERROR = 3;
-  RUNTIME_ERROR = 4;
-  JSON_PARSE_ERROR = 5;
+  ERROR_TYPE_VERIFICATION_ERROR_TYPE_UNSPECIFIED = 0;
+  ERROR_TYPE_NOT_SUPPORTED = 1;
+  ERROR_TYPE_CHALLENGE_NOT_SET = 2;
+  ERROR_TYPE_INTERNAL_ERROR = 3;
+  ERROR_TYPE_RUNTIME_ERROR = 4;
+  ERROR_TYPE_JSON_PARSE_ERROR = 5;
 }
 
 message ServiceEntitlementError {
@@ -625,7 +665,7 @@ enum ServiceState {
 }
 
 enum GtafVerificationMethod {
-  GTAF_METHOD_UNKNOWN = 0;
+  METHOD_UNKNOWN = 0;
   METHOD_CARRIER_ID_TS43 = 1;
   METHOD_CARRIER_ID_LEGACY = 2;
   METHOD_CARRIER_ID_TS43_UPI = 3;
@@ -668,4 +708,113 @@ enum TriggerType {
   TRIGGER_TYPE_FAILURE_RETRY = 10;
   TRIGGER_TYPE_CONSENT_API_TRIGGER = 11;
   TRIGGER_TYPE_PNVR_DEVICE_SETTINGS = 12;
+}
+
+message DeviceConsent {
+  ConsentValue consent = 2;
+  ConsentCostSetting cost_setting = 3;
+}
+
+message AppSpecificConsent {
+  ConsentValue consent = 1;
+  AppIdentifier app = 2;
+}
+
+message GaiaReachabilityConsent {
+  GaiaId gaia_id = 1;
+  ConsentValue reachability_consent = 2;
+}
+
+message OnDemandConsent {
+  ConsentValue consent = 1;
+  GaiaId gaia_id = 2;
+  string consent_variant = 3;
+  string trigger = 4;
+}
+
+message DeviceVerificationConsent {
+  ConsentValue consent_value = 1;
+  DeviceVerificationConsentSource consent_source = 2;
+  DeviceVerificationConsentVersion consent_version = 3;
+}
+
+message ClientBehavior {
+  DeviceConsent current_consent = 1;
+  CheckerState checkers_state = 2;
+}
+
+message AsterismConsent {
+  AsterismClient consumer = 1;
+  ConsentValue consent = 2;
+  RcsConsentVersion consent_version = 3;
+  bool are_all_rcs_users_unmonitored = 4;
+}
+
+message DevicePermissionInfo {
+  DevicePermissionState permission_state = 1;
+  DevicePermissionMode permission_mode = 2;
+}
+
+enum ConsentValue {
+  CONSENT_VALUE_UNKNOWN = 0;
+  CONSENT_VALUE_CONSENTED = 1;
+  CONSENT_VALUE_NO_CONSENT = 2;
+  CONSENT_VALUE_EXPIRED = 3;
+}
+
+enum ConsentCostSetting {
+  CONSENT_COST_SETTING_NONE = 0;
+  CONSENT_COST_SETTING_AUTOMATIC = 1;
+  CONSENT_COST_SETTING_MANUAL = 2;
+}
+
+enum CheckerState {
+  CHECKERS_UNKNOWN_STATE = 0;
+  CHECKERS_INACTIVE = 1;
+  CHECKERS_ACTIVE = 2;
+}
+
+enum DeviceVerificationConsentSource {
+  DEVICE_VERIFICATION_CONSENT_SOURCE_UNSPECIFIED = 0;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_ANDROID_DEVICE_SETTINGS = 1;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_GAIA_USERNAME_RECOVERY = 2;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_AOB_SETUP_WIZARD = 3;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_MINUTEMAID_JS_BRIDGE = 4;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_GAIA_WEB_JS_BRIDGE = 5;
+  DEVICE_VERIFICATION_CONSENT_SOURCE_AM_PROFILES = 6;
+}
+
+enum DeviceVerificationConsentVersion {
+  DEVICE_VERIFICATION_CONSENT_VERSION_UNKNOWN = 0;
+  DEVICE_VERIFICATION_CONSENT_VERSION_PHONE_VERIFICATION_DEFAULT = 1;
+  DEVICE_VERIFICATION_CONSENT_VERSION_PHONE_VERIFICATION_MESSAGES_CALLS_V1 = 2;
+  DEVICE_VERIFICATION_CONSENT_VERSION_PHONE_VERIFICATION_INTL_SMS_CALLS = 3;
+  DEVICE_VERIFICATION_CONSENT_VERSION_PHONE_VERIFICATION_REACHABILITY_INTL_SMS_CALLS = 4;
+}
+
+enum RcsConsentVersion {
+  RCS_CONSENT_VERSION_UNSPECIFIED = 0;
+  RCS_CONSENT_VERSION_RCS_CONSENT = 1;
+  RCS_CONSENT_VERSION_RCS_DEFAULT_ON_LEGAL_FYI = 2;
+  RCS_CONSENT_VERSION_RCS_DEFAULT_ON_OUT_OF_BOX = 3;
+  RCS_CONSENT_VERSION_RCS_SAMSUNG_UNFREEZE = 4;
+  RCS_CONSENT_VERSION_RCS_DEFAULT_ON_LEGAL_FYI_IN_SETTINGS = 5;
+}
+
+enum AppIdentifier {
+  APP_IDENTIFIER_UNKNOWN_APP = 0;
+  APP_IDENTIFIER_RCS = 1;
+}
+
+enum DevicePermissionState {
+  DEVICE_PERMISSION_STATE_UNSPECIFIED = 0;
+  DEVICE_PERMISSION_STATE_GRANTED = 1;
+  DEVICE_PERMISSION_STATE_DENIED = 2;
+}
+
+enum DevicePermissionMode {
+  DEVICE_PERMISSION_MODE_UNSPECIFIED = 0;
+  DEVICE_PERMISSION_MODE_LEGACY_DPNV = 1;
+  DEVICE_PERMISSION_MODE_PNVR = 2;
+  DEVICE_PERMISSION_MODE_NOT_ALLOWED = 3;
 }
