@@ -4,12 +4,6 @@ package constellation;
 
 import "google/protobuf/timestamp.proto";
 
-// Minimal SyncRequest proto extracted from the captured gRPC payload.
-// Many nested messages are left as raw bytes because the discovery doc
-// (constellation.json) does not surface the canonical field numbers.
-// You can decode those sub-messages separately with decode_raw until the
-// full proto surface is recovered.
-
 message SyncRequest {
   repeated Verification verifications = 3;
   RequestHeader header = 4;
